@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevLab — Laboratório de JavaScript</title>
+<style>
+  :root {
+    --bg: #0f0c29;
+    --card: rgba(255,255,255,.05);
+    --line: rgba(255,255,255,.12);
+    --pink: #ff6b9d;
+    --yellow: #feca57;
+    --blue: #48dbfb;
+    --green: #1dd1a1;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(135deg,#0f0c29,#302b63,#24243e);
+    background-attachment: fixed;
+    color:#fff; min-height:100vh; line-height:1.6;
+  }
+  header { text-align:center; padding:45px 20px 25px; }
+  header h1 {
+    font-size:3rem;
+    background:linear-gradient(90deg,var(--pink),var(--yellow),var(--blue));
+    -webkit-background-clip:text; background-clip:text;
+    -webkit-text-fill-color:transparent;
+  }
+  header p { opacity:.8; margin-top:8px; }
+  .status {
+    display:flex; gap:20px; justify-content:center; align-items:center;
+    flex-wrap:wrap; margin-top:20px;
+  }
+  .pill {
+    background:rgba(255,255,255,.08); border:1px solid var(--line);
+    padding:8px 18px; border-radius:30px; font-size:.9rem;
+  }
+  .pill b { color:var(--yellow); }
+  .progress-wrap { max-width:400px; margin:18px auto 0; }
+  .progress-bar {
+    height:10px; background:rgba(255,255,255,.1); border-radius:10px; overflow:hidden;
+  }
+  .progress-fill {
+    height:100%; width:0%;
+    background:linear-gradient(90deg,var(--pink),var(--yellow),var(--green));
+    transition:width .6s ease;
+  }
+  .progress-text { font-size:.8rem; opacity:.7; margin-top:6px; }
+  nav {
+    position:sticky; top:0; z-index:50; display:flex; gap:8px;
+    justify-content:center; flex-wrap:wrap; padding:15px;
+    background:rgba(15,12,41,.95); backdrop-filter:blur(12px);
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+  }
+  nav button {
+    border:1px solid var(--line); background:rgba(255,255,255,.06);
+    color:#fff; padding:10px 22px; border-radius:25px; cursor:pointer;
+    font-size:.95rem; font-weight:600; transition:.25s;
+  }
+  nav button:hover { background:rgba(255,255,255,.15); transform:translateY(-2px); }
+  nav button.active { background:linear-gradient(90deg,var(--pink),var(--yellow)); color:#111; border-color:transparent; }
+  main { max-width:1000px; margin:0 auto; padding:30px 18px; }
+  .tab { display:none; animation:fade .4s ease; }
+  .tab.active { display:block; }
+  @keyframes fade { from{opacity:0;transform:translateY(15px)} to{opacity:1;transform:none} }
+  .card {
+    background:var(--card); border:1px solid var(--line);
+    border-radius:16px; padding:24px; margin-bottom:22px;
+    backdrop-filter:blur(8px);
+  }
+  .card h2 { color:var(--yellow); margin-bottom:12px; font-size:1.5rem; }
+  .card h3 { color:var(--blue); margin:14px 0 8px; }
+  .card p { opacity:.9; margin-bottom:10px; }
+  .chips { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px; }
+  .chips button {
+    background:rgba(255,255,255,.07); color:#fff; border:1px solid var(--line);
+    padding:7px 16px; border-radius:20px; cursor:pointer; font-size:.85rem; transition:.2s;
+  }
+  .chips button.active { background:var(--blue); color:#111; border-color:transparent; }
+  .badge {
+    display:inline-block; font-size:.72rem; padding:3px 10px; border-radius:12px;
+    margin-right:8px; font-weight:700; vertical-align:middle;
+  }
+  .facil { background:rgba(29,209,161,.2); color:var(--green); }
+  .medio { background:rgba(254,202,87,.2); color:var(--yellow); }
+  .dificil { background:rgba(255,107,157,.2); color:var(--pink); }
+  .resolvido { color:var(--green); font-size:.8rem; float:right; }
+  .req { background:rgba(72,219,251,.07); border-left:3px solid var(--blue); padding:12px 16px; border-radius:6px; margin:12px 0; }
+  .req ul { padding-left:20px; }
+  textarea {
+    width:100%; min-height:150px; resize:vertical;
+    background:#12101f; color:#e8e8ff; border:1px solid var(--line);
+    border-radius:10px; padding:15px; font-family:Consolas,Monaco,monospace;
+    font-size:.92rem; line-height:1.6; margin:12px 0; outline:none;
+  }
+  textarea:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(72,219,251,.12); }
+  .actions { display:flex; gap:10px; flex-wrap:wrap; }
+  .btn {
+    border:none; padding:10px 20px; border-radius:22px; cursor:pointer;
+    font-weight:700; font-size:.88rem; transition:.2s;
+  }
+  .btn:hover { transform:translateY(-2px); filter:brightness(1.1); }
+  .btn-run { background:var(--green); color:#08281f; }
+  .btn-ghost { background:rgba(255,255,255,.1); color:#fff; }
+  .btn-solve { background:rgba(254,202,87,.18); color:var(--yellow); }
+  .btn:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+  .output {
+    margin-top:14px; background:#0a0817; border:1px solid var(--line);
+    border-radius:10px; padding:14px; font-family:Consolas,monospace;
+    font-size:.85rem; white-space:pre-wrap; word-break:break-word; display:none;
+  }
+  .output.show { display:block; }
+  .log-line { color:#c9c9ff; }
+  .err-line { color:var(--pink); }
+  .test { padding:6px 10px; border-radius:6px; margin-top:6px; font-family:inherit; font-size:.85rem; }
+  .test.ok { background:rgba(29,209,161,.12); color:var(--green); }
+  .test.no { background:rgba(255,107,157,.12); color:var(--pink); }
+  .hint, .solution { display:none; margin-top:14px; padding:14px; border-radius:10px; }
+  .hint { background:rgba(254,202,87,.08); border-left:3px solid var(--yellow); }
+  .solution { background:#12101f; border-left:3px solid var(--green); }
+  .hint p, .solution p { font-size:.9rem; }
+  pre { overflow-x:auto; font-family:Consolas,monospace; color:#a5f3c4; font-size:.85rem; margin-top:8px; }
+  .quiz-option {
+    display:block; width:100%; text-align:left; margin:8px 0;
+    background:rgba(255,255,255,.06); color:#fff; border:1px solid var(--line);
+    padding:14px 18px; border-radius:10px; cursor:pointer; transition:.2s; font-size:.95rem;
+  }
+  .quiz-option:hover:not(:disabled) { background:rgba(72,219,251,.12); border-color:var(--blue); }
+  .quiz-option.right { background:rgba(29,209,161,.2); border-color:var(--green); }
+  .quiz-option.wrong { background:rgba(255,107,157,.2); border-color:var(--pink); }
+  .quiz-option:disabled { cursor:default; }
+  #quiz-feedback { margin:14px 0; padding:14px; border-radius:10px; display:none; }
+  .lab-grid { display:grid; gap:22px; }
+  .lab-ui { background:#fff; color:#222; padding:20px; border-radius:12px; margin:14px 0; }
+  .lab-ui button {
+    background:linear-gradient(90deg,var(--pink),var(--yellow)); border:none;
+    padding:8px 16px; border-radius:20px; font-weight:700; cursor:pointer; margin:4px;
+  }
+  .lab-ui input { padding:10px; border:1px solid #ccc; border-radius:8px; width:65%; }
+  .lab-ui ul { list-style:none; padding:0; }
+  .lab-ui li { background:#f0f0f5; padding:8px 12px; margin:6px 0; border-radius:8px; cursor:pointer; }
+  .lab-ui li:hover { background:#ffe0e9; }
+  .counter-num { font-size:2.5rem; font-weight:800; color:#302b63; margin:8px 0; }
+  .meta { font-size:.85rem; margin-top:10px; }
+  .meta span { display:block; opacity:.65; }
+  .meta span.done { color:var(--green); opacity:1; font-weight:700; }
+  #tema-preview { transition:.4s; padding:25px; border-radius:12px; background:#f5f5fa; color:#222; text-align:center; }
+  #tema-preview.dark-lab { background:#191627; color:#fff; box-shadow:0 0 0 3px var(--blue); }
+  #cards-target { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+  .mini-card { padding:18px; border-radius:10px; color:#111; font-weight:700; animation:fade .4s; }
+  .trophy { text-align:center; padding:35px; background:rgba(254,202,87,.08); border:2px solid var(--yellow); border-radius:16px; }
+  .trophy h2 { font-size:2rem; }
+  footer { text-align:center; padding:30px; opacity:.6; font-size:.85rem; }
+  .confetti { position:fixed; top:-30px; font-size:24px; z-index:999; pointer-events:none; animation:fall 2.2s linear forwards; }
+  @keyframes fall { to { transform:translateY(110vh) rotate(720deg); opacity:0; } }
+  @media(max-width:600px){ header h1{font-size:2.1rem} .card{padding:18px} nav button{padding:9px 14px;font-size:.85rem} }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🧪 DevLab</h1>
+  <p>Menos teoria, mais código. Aprenda JavaScript praticando!</p>
+  <div class="status">
+    <div class="pill">⭐ XP: <b id="xp">0</b></div>
+    <div class="pill">🏅 Nível: <b id="nivel">Iniciante</b></div>
+    <div class="pill"> Recorde quiz: <b id="recorde">0</b>/10</div>
+    <button class="btn btn-ghost" onclick="resetar()">↺ Zerar progresso</button>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-text" id="progress-text">0 de 16 exercícios concluídos</div>
+  </div>
+</header>
+
+<nav>
+  <button class="active" onclick="trocarTab('exercicios',this)">🧩 Exercícios</button>
+  <button onclick="trocarTab('quiz',this)">🧠 Quiz</button>
+  <button onclick="trocarTab('dom',this)">🖱️ DOM Lab</button>
+  <button onclick="trocarTab('final',this)">🏆 Desafio Final</button>
+</nav>
+
+<main>
+
+  <!-- EXERCÍCIOS -->
+  <section id="exercicios" class="tab active">
+    <div class="card">
+      <h2>Como funciona? 🤔</h2>
+      <p>Leia o enunciado, escreva seu código no editor e clique em <b>▶️ Executar</b>.
+      O sistema roda seu JavaScript de verdade e verifica cada requisito.
+      Travou? Use a 💡 dica ou veja a solução. Cada acerto gera <b>XP</b>!</p>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div id="lista-exercicios"></div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz" class="tab">
+    <div class="card">
+      <h2>🧠 Quiz de JavaScript</h2>
+      <p>10 perguntas rápidas sobre tudo que você aprendeu. Acertou? +5 XP.</p>
+      <div id="quiz-box"></div>
+    </div>
+  </section>
+
+  <!-- DOM LAB -->
+  <section id="dom" class="tab">
+    <div class="card">
+      <h2>🖱️ Laboratório de DOM</h2>
+      <p>Aqui você experimenta o que o JavaScript faz na página.
+      Interaja com os componentes e complete as metas de cada laboratório.</p>
+      <pre>document.querySelector(".botao")        // seleciona
+elemento.textContent = "Olá"           // muda texto
+elemento.classList.toggle("ativo")     // muda classe
+elemento.addEventListener("click", fn) // escuta eventos</pre>
+    </div>
+
+    <div class="lab-grid">
+      <div class="card">
+        <h3>1️⃣ Contador</h3>
+        <p>Use os botões. Meta: chegar a <b>5</b> e depois voltar ao <b>0</b>.</p>
+        <div class="lab-ui">
+          <div class="counter-num" id="counter-num">0</div>
+          <button onclick="mudarContador(-1)">−</button>
+          <button onclick="mudarContador(1)">+</button>
+          <button onclick="resetContador()">Reset</button>
+        </div>
+        <div class="meta" id="meta-counter">
+          <span id="mc1">☐ Chegou a 5</span>
+          <span id="mc2">☐ Voltou ao zero</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>2️⃣ Lista de tarefas</h3>
+        <p>Adicione pelo menos <b>2 tarefas</b> e <b>clique em uma</b> para removê-la.</p>
+        <div class="lab-ui">
+          <input id="task-input" placeholder="Digite uma tarefa..." onkeydown="if(event.key==='Enter')addTask()">
+          <button onclick="addTask()">Adicionar</button>
+          <ul id="task-list"></ul>
+          <small>Clique numa tarefa para remover 🗑️</small>
+        </div>
+        <div class="meta" id="meta-task">
+          <span id="mt1">☐ Adicionou 2 tarefas</span>
+          <span id="mt2">☐ Removeu 1 tarefa</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>3️⃣ Troca de tema</h3>
+        <p>Alterne o tema usando <code>classList.toggle()</code>.</p>
+        <div id="tema-preview">
+          <h3>🌙 Modo escuro</h3>
+          <p>Este painel muda com JavaScript!</p>
+          <button class="btn btn-run" onclick="toggleTema()">🌓 Alternar tema</button>
+        </div>
+        <div class="meta" id="meta-theme">
+          <span id="mm1">☐ Ativou o tema escuro</span>
+          <span id="mm2">☐ Voltou ao tema claro</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>4️⃣ Criar elementos com JS</h3>
+        <p>Cada clique executa <code>createElement()</code> + <code>appendChild()</code>. Crie 3 cards!</p>
+        <button class="btn btn-run" onclick="gerarCard()">＋ Gerar card</button>
+        <div id="cards-target"></div>
+        <div class="meta" id="meta-cards"><span id="md1">☐ Criou 3 cards</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL -->
+  <section id="final" class="tab">
+    <div class="card">
+      <h2>🏆 Missão Final: analisando uma loja</h2>
+      <p>Junte <b>filter + map + reduce</b> numa missão só.
+      Você tem uma lista de produtos e precisa gerar um relatório.</p>
+      <div id="final-container"></div>
+    </div>
+    <div id="trophy-box" style="display:none">
+      <div class="trophy">
+        <h2>🏆 MESTRE JAVASCRIPT!</h2>
+        <p>Você dominou variáveis, funções, arrays, objetos e lógica.<br>
+        Agora vá construir seu próprio projeto! 🚀</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>💻 DevLab — pratique todo dia. O código é muscle memory. | 2026</footer>
+
+<script>
+/* ==================== DADOS DOS EXERCÍCIOS ==================== */
+const exercicios = [
+  {
+    id:"v1", tema:"Variáveis", nivel:"Fácil", xp:10,
+    titulo:"01. Apresente-se",
+    desc:"Pratique variáveis e template literals.",
+    req:["Crie uma variável let nome com seu nome (string).","Crie uma const idade com um número.","Crie const apresentacao com o texto: Olá, eu sou NOME e tenho IDADE anos."],
+    starter:`// Seu nome e idade\nlet nome = "";\nconst idade = 0;\n\n// Monte a frase com template literals (\` \`) e \${}\nconst apresentacao = "";\n\nconsole.log(apresentacao);`,
+    solution:`let nome = "Ana";\nconst idade = 25;\nconst apresentacao = \`Olá, eu sou \${nome} e tenho \${idade} anos.\`;\nconsole.log(apresentacao);`,
+    hint:"Use crases, não aspas: `Olá, ${nome}`. Isso se chama template literal.",
+    checks:`check("nome é uma string preenchida", typeof nome === "string" && nome.length > 0);
+check("idade é um número", typeof idade === "number");
+check("frase montada corretamente", typeof apresentacao === "string" && apresentacao === "Olá, eu sou " + nome + " e tenho " + idade + " anos.");`
+  },
+  {
+    id:"v2", tema:"Variáveis", nivel:"Fácil", xp:10,
+    titulo:"02. Troque os valores",
+    desc:"Sem rodar o código novamente, troque os valores de a e b.",
+    req:["Deixe a igual a 2 e b igual a 1.","Use uma terceira variável OU destructuring: [a, b] = [b, a]"],
+    starter:`let a = 1;\nlet b = 2;\n\n// Troque aqui\n\nconsole.log(a, b); // deve imprimir: 2 1`,
+    solution:`let a = 1;\nlet b = 2;\n[a, b] = [b, a];\nconsole.log(a, b);`,
+    hint:"Destructuring faz mágica: [a, b] = [b, a];",
+    checks:`check("a vale 2", a === 2); check("b vale 1", b === 1);`
+  },
+  {
+    id:"f1", tema:"Funções", nivel:"Fácil", xp:10,
+    titulo:"03. Função dobro",
+    desc:"Crie uma função tradicional que recebe um número e retorna o dobro.",
+    req:["Declare function dobro(n).","Retorne n multiplicado por 2."],
+    starter:`// Crie a função dobro\n\n\nconsole.log(dobro(4));  // 8\nconsole.log(dobro(10)); // 20`,
+    solution:`function dobro(n) {\n  return n * 2;\n}\nconsole.log(dobro(4));`,
+    hint:"function dobro(n) { return n * 2; } — não esqueça o return!",
+    checks:`check("dobro(4) = 8", dobro(4) === 8); check("dobro(10) = 20", dobro(10) === 20); check("dobro(0) = 0", dobro(0) === 0);`
+  },
+  {
+    id:"f2", tema:"Funções", nivel:"Fácil", xp:10,
+    titulo:"04. Arrow function do futuro",
+    desc:"Descubra em que ano alguém fará uma certa idade.",
+    req:["Crie const calcularAno = (anoNascimento, idadeDesejada) => ...","Retorne o ano em que a pessoa terá essa idade."],
+    starter:`// Arrow function de uma linha\nconst calcularAno = (anoNascimento, idadeDesejada) => \n\nconsole.log(calcularAno(2000, 30)); // 2030`,
+    solution:`const calcularAno = (anoNascimento, idadeDesejada) => anoNascimento + idadeDesejada;\nconsole.log(calcularAno(2000, 30));`,
+    hint:"Uma arrow function com uma expressão não precisa de { } nem return: x => x * 2",
+    checks:`check("2000 + 30 = 2030", calcularAno(2000,30) === 2030); check("1990 + 40 = 2030", calcularAno(1990,40) === 2030);`
+  },
+  {
+    id:"f3", tema:"Funções", nivel:"Médio", xp:15,
+    titulo:"05. Parâmetro com padrão",
+    desc:"Crie uma saudação que funciona mesmo sem nome.",
+    req:["Crie const saudar = (nome = \"dev\") => ...","Retorne: Bem-vindo, NOME!"],
+    starter:`const saudar = \n\nconsole.log(saudar("Maria")); // Bem-vindo, Maria!\nconsole.log(saudar());        // Bem-vindo, dev!`,
+    solution:`const saudar = (nome = "dev") => \`Bem-vindo, \${nome}!\`;\nconsole.log(saudar("Maria"));\nconsole.log(saudar());`,
+    hint:"Parâmetros padrão vão na assinatura: (nome = \"dev\")",
+    checks:`check("com nome", saudar("Maria") === "Bem-vindo, Maria!"); check("sem nome usa dev", saudar() === "Bem-vindo, dev!");`
+  },
+  {
+    id:"a1", tema:"Arrays", nivel:"Fácil", xp:10,
+    titulo:"06. Adicione uma fruta",
+    desc:"Use o método push para incluir uma fruta.",
+    req:["Adicione \"uva\" ao final do array frutas usando .push()","O array deve ficar com 3 itens."],
+    starter:`const frutas = ["maçã", "banana"];\n\n// Adicione uva aqui\n\nconsole.log(frutas);`,
+    solution:`const frutas = ["maçã", "banana"];\nfrutas.push("uva");\nconsole.log(frutas);`,
+    hint:"frutas.push(\"uva\") adiciona no final. pop() remove.",
+    checks:`check("array tem 3 frutas", frutas.length === 3); check("última é uva", frutas[2] === "uva");`
+  },
+  {
+    id:"a2", tema:"Arrays", nivel:"Médio", xp:15,
+    titulo:"07. map: transforme tudo",
+    desc:"Crie um novo array com o dobro de cada número.",
+    req:["Use numeros.map(...) com uma arrow function.","Guarde o resultado em const dobro.","Não altere o array original."],
+    starter:`const numeros = [1, 2, 3, 4, 5];\n\nconst dobro = \n\nconsole.log(dobro); // [2, 4, 6, 8, 10]`,
+    solution:`const numeros = [1, 2, 3, 4, 5];\nconst dobro = numeros.map(n => n * 2);\nconsole.log(dobro);`,
+    hint:"map cria um NOVO array transformando cada item: numeros.map(n => n * 2)",
+    checks:`check("dobro correto", JSON.stringify(dobro) === "[2,4,6,8,10]"); check("original intacto", JSON.stringify(numeros) === "[1,2,3,4,5]");`
+  },
+  {
+    id:"a3", tema:"Arrays", nivel:"Médio", xp:15,
+    titulo:"08. filter: só os pares",
+    desc:"Filtre apenas os números pares.",
+    req:["Use numeros.filter(...)","Guarde em const pares.","Dica: resto da divisão é %. Par significa n % 2 === 0"],
+    starter:`const numeros = [1, 2, 3, 4, 5, 6];\n\nconst pares = \n\nconsole.log(pares); // [2, 4, 6]`,
+    solution:`const numeros = [1, 2, 3, 4, 5, 6];\nconst pares = numeros.filter(n => n % 2 === 0);\nconsole.log(pares);`,
+    hint:"filter mantém os itens que retornam true: numeros.filter(n => n % 2 === 0)",
+    checks:`check("só pares", JSON.stringify(pares) === "[2,4,6]");`
+  },
+  {
+    id:"a4", tema:"Arrays", nivel:"Médio", xp:15,
+    titulo:"09. reduce: some tudo",
+    desc:"Some todos os números usando reduce.",
+    req:["Use numeros.reduce(...)","Guarde em const soma.","O valor inicial do acumulador deve ser 0."],
+    starter:`const numeros = [1, 2, 3, 4, 5];\n\nconst soma = \n\nconsole.log(soma); // 15`,
+    solution:`const numeros = [1, 2, 3, 4, 5];\nconst soma = numeros.reduce((acc, n) => acc + n, 0);\nconsole.log(soma);`,
+    hint:"reduce((acumulador, item) => acumulador + item, 0)",
+    checks:`check("soma = 15", soma === 15);`
+  },
+  {
+    id:"a5", tema:"Arrays", nivel:"Difícil", xp:20,
+    titulo:"10. Combinação mortal: filter + map",
+    desc:"Encontre os nomes dos produtos baratos.",
+    req:["Filtre produtos com preco menor que 50.","Depois use map para pegar só o nome de cada um.","Guarde em const nomesBaratos."],
+    starter:`const produtos = [\n  { nome: "Caneta", preco: 10 },\n  { nome: "Teclado", preco: 150 },\n  { nome: "Caderno", preco: 30 },\n  { nome: "Monitor", preco: 900 }\n];\n\nconst nomesBaratos = \n\nconsole.log(nomesBaratos); // ["Caneta", "Caderno"]`,
+    solution:`const nomesBaratos = produtos\n  .filter(p => p.preco < 50)\n  .map(p => p.nome);\nconsole.log(nomesBaratos);`,
+    hint:"Encadeie: produtos.filter(p => p.preco < 50).map(p => p.nome)",
+    checks:`check("nomes corretos", JSON.stringify(nomesBaratos) === '["Caneta","Caderno"]');`
+  },
+  {
+    id:"o1", tema:"Objetos", nivel:"Médio", xp:15,
+    titulo:"11. Crie um objeto com método",
+    desc:"Modele uma pessoa com dados e comportamento.",
+    req:["Crie const pessoa com: nome (string), idade (número) e método saudar().","saudar() deve retornar: Oi, eu sou NOME!"],
+    starter:`const pessoa = {\n  // seus dados aqui\n};\n\nconsole.log(pessoa.saudar());`,
+    solution:`const pessoa = {\n  nome: "Ana",\n  idade: 25,\n  saudar() {\n    return \`Oi, eu sou \${this.nome}!\`;\n  }\n};\nconsole.log(pessoa.saudar());`,
+    hint:"Dentro de um método, this.nome acessa a propriedade nome do próprio objeto.",
+    checks:`check("tem nome", typeof pessoa.nome === "string" && pessoa.nome.length>0); check("tem idade", typeof pessoa.idade === "number"); check("saudar funciona", pessoa.saudar() === "Oi, eu sou " + pessoa.nome + "!");`
+  },
+  {
+    id:"o2", tema:"Objetos", nivel:"Médio", xp:15,
+    titulo:"12. Destructuring",
+    desc:"Extraia propriedades de um objeto em variáveis.",
+    req:["Use const { nome, preco } = produto;","Crie também uma const descricao com: NOME custa R$ PRECO"],
+    starter:`const produto = { nome: "Mouse", preco: 80, cor: "preto" };\n\n// Extraia com destructuring\n\n\nconsole.log(descricao); // Mouse custa R$ 80`,
+    solution:`const produto = { nome: "Mouse", preco: 80, cor: "preto" };\nconst { nome, preco } = produto;\nconst descricao = \`\${nome} custa R$ \${preco}\`;\nconsole.log(descricao);`,
+    hint:"Os nomes dentro de { } devem ser iguais às chaves do objeto.",
+    checks:`check("nome extraído", nome === "Mouse"); check("preco extraído", preco === 80); check("descricao correta", descricao === "Mouse custa R$ 80");`
+  },
+  {
+    id:"l1", tema:"Lógica", nivel:"Fácil", xp:10,
+    titulo:"13. Loop somador",
+    desc:"Some os números de 1 até 5 usando for.",
+    req:["Comece com let soma = 0 (já está no código).","Use um for para somar 1+2+3+4+5 na variável soma."],
+    starter:`let soma = 0;\n\n// Seu for aqui\n\n\nconsole.log(soma); // 15`,
+    solution:`let soma = 0;\nfor (let i = 1; i <= 5; i++) {\n  soma += i;\n}\nconsole.log(soma);`,
+    hint:"for (let i = 1; i <= 5; i++) { soma += i; }",
+    checks:`check("soma = 15", soma === 15);`
+  },
+  {
+    id:"l2", tema:"Lógica", nivel:"Médio", xp:15,
+    titulo:"14. Aprovado ou recuperação?",
+    desc:"Crie uma função que classifica uma nota.",
+    req:["Crie function classificar(nota).","Nota >= 6 retorna \"aprovado\". Caso contrário \"recuperação\".","Use um ternário se quiser caprichar."],
+    starter:`function classificar(nota) {\n  // seu código\n}\n\nconsole.log(classificar(8)); // aprovado\nconsole.log(classificar(4)); // recuperação`,
+    solution:`function classificar(nota) {\n  return nota >= 6 ? "aprovado" : "recuperação";\n}\nconsole.log(classificar(8));`,
+    hint:"return nota >= 6 ? \"aprovado\" : \"recuperação\";",
+    checks:`check("8 aprovado", classificar(8) === "aprovado"); check("4 recuperação", classificar(4) === "recuperação"); check("6 aprovado (limite)", classificar(6) === "aprovado");`
+  },
+  {
+    id:"l3", tema:"Lógica", nivel:"Difícil", xp:25,
+    titulo:"15. FizzBuzz — o clássico das entrevistas",
+    desc:"O desafio que todo dev precisa enfrentar.",
+    req:["Crie function fizzbuzz(n) que retorna um array de 1 até n.","Múltiplos de 15 → \"FizzBuzz\". Só de 3 → \"Fizz\". Só de 5 → \"Buzz\". Os outros → o número.","Teste: fizzbuzz(5) = [1,2,\"Fizz\",4,\"Buzz\"]"],
+    starter:`function fizzbuzz(n) {\n  const resultado = [];\n  // use um for e if/else\n  return resultado;\n}\n\nconsole.log(fizzbuzz(15));`,
+    solution:`function fizzbuzz(n) {\n  const resultado = [];\n  for (let i = 1; i <= n; i++) {\n    if (i % 15 === 0) resultado.push("FizzBuzz");\n    else if (i % 3 === 0) resultado.push("Fizz");\n    else if (i % 5 === 0) resultado.push("Buzz");\n    else resultado.push(i);\n  }\n  return resultado;\n}`,
+    hint:"Teste 15 PRIMEIRO! Se testar 3 antes, FizzBuzz nunca aparece.",
+    checks:`check("fizzbuzz(5)", JSON.stringify(fizzbuzz(5)) === '[1,2,"Fizz",4,"Buzz"]'); check("fizzbuzz(15) tem FizzBuzz", fizzbuzz(15)[14] === "FizzBuzz"); check("length correto", fizzbuzz(10).length === 10); check("posição 9 é Buzz", fizzbuzz(10)[9] === "Buzz");`
+  },
+  {
+    id:"final", tema:"Final", nivel:"Difícil", xp:50,
+    titulo:"🏆 Missão Final: relatório da loja",
+    desc:"Junte TUDO: objetos, filter, map e reduce.",
+    req:["const caros = produtos com preco >= 100 (filter).","const nomesCaros = nomes dos caros (map).","const total = soma de todos os preços (reduce).","const totalComDesconto = total com 10% de desconto (total * 0.9)."],
+    starter:`const produtos = [\n  { nome: "Mouse", preco: 80 },\n  { nome: "Teclado", preco: 150 },\n  { nome: "Monitor", preco: 900 },\n  { nome: "Caderno", preco: 30 }\n];\n\nconst caros = \nconst nomesCaros = \nconst total = \nconst totalComDesconto = \n\nconsole.log(nomesCaros);        // ["Teclado", "Monitor"]\nconsole.log(total);             // 1160\nconsole.log(totalComDesconto);  // 1044`,
+    solution:`const caros = produtos.filter(p => p.preco >= 100);\nconst nomesCaros = caros.map(p => p.nome);\nconst total = produtos.reduce((acc, p) => acc + p.preco, 0);\nconst totalComDesconto = total * 0.9;\nconsole.log(nomesCaros, total, totalComDesconto);`,
+    hint:"Filtre primeiro, depois mapeie o resultado. O reduce passa sobre TODOS os produtos, não só os caros.",
+    checks:`check("caros filtrados", caros.length === 2); check("nomes dos caros", JSON.stringify(nomesCaros) === '["Teclado","Monitor"]'); check("total = 1160", total === 1160); check("com desconto = 1044", Math.abs(totalComDesconto - 1044) < 0.01);`
+  }
+];
+
+/* ==================== ESTADO / XP ==================== */
+const KEY = "devlab_progresso_v1";
+let estado = { solved: [], xp: 0, best: 0, labs: [] };
+try { const salvo = JSON.parse(localStorage.getItem(KEY)); if (salvo) estado = {...estado, ...salvo}; } catch(e){}
+function salvar(){ localStorage.setItem(KEY, JSON.stringify(estado)); atualizarStatus(); }
+function atualizarStatus(){
+  document.getElementById("xp").textContent = estado.xp;
+  document.getElementById("recorde").textContent = estado.best;
+  const total = exercicios.length;
+  const qtd = exercicios.filter(e => estado.solved.includes(e.id)).length;
+  document.getElementById("progress-fill").style.width = (qtd/total*100)+"%";
+  document.getElementById("progress-text").textContent = qtd+" de "+total+" exercícios concluídos";
+  document.getElementById("nivel").textContent =
+    estado.xp >= 250 ? "Lendário 👑" : estado.xp >= 150 ? "Avançado 🚀" : estado.xp >= 70 ? "Intermediário 💪" : "Iniciante 🌱";
+  if (estado.solved.includes("final")) document.getElementById("trophy-box").style.display="block";
+}
+function concluir(id, xp){
+  if (estado.solved.includes(id)) return;
+  estado.solved.push(id); estado.xp += xp; salvar();
+  confetti();
+}
+function resetar(){
+  if(confirm("Apagar todo o seu progresso e XP?")){
+    localStorage.removeItem(KEY); location.reload();
+  }
+}
+function confetti(){
+  const emojis=["🎉","⭐","✨","🚀",""];
+  for(let i=0;i<18;i++){
+    const d=document.createElement("div");
+    d.className="confetti"; d.textContent=emojis[i%emojis.length];
+    d.style.left=Math.random()*100+"vw";
+    d.style.animationDelay=Math.random()*0.5+"s";
+    document.body.appendChild(d);
+    setTimeout(()=>d.remove(),2800);
+  }
+}
+
+/* ==================== NAVEGAÇÃO ==================== */
+function trocarTab(id, btn){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  btn.classList.add("active");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* ==================== EXECUTOR SEGURO (WEB WORKER) ==================== */
+function executarJS(code, checks, onLog, onTest, onError, onDone){
+  const source = `
+    const send = d => postMessage(d);
+    const fmt = v => {
+      if (typeof v === "string") return v;
+      if (v === undefined) return "undefined";
+      if (typeof v === "function") return v.toString();
+      try { return JSON.stringify(v); } catch(e) { return String(v); }
+    };
+    console.log = (...a) => send({t:"log", m:a.map(fmt).join(" ")});
+    console.warn = console.error = console.log;
+    const check = (name, cond) => send({t:"test", name:name, pass:!!cond});
+    try {
+      (0, eval)(${JSON.stringify(code + "\n" + checks)});
+    } catch(e) {
+      send({t:"error", m:e.name + ": " + e.message});
+    }
+    send({t:"done"});
+  `;
+  const url = URL.createObjectURL(new Blob([source],{type:"application/javascript"}));
+  const worker = new Worker(url);
+  let finished = false;
+  const finish = () => {
+    if(finished) return; finished = true;
+    clearTimeout(timer); worker.terminate(); URL.revokeObjectURL(url); onDone();
+  };
+  const timer = setTimeout(()=>{
+    onError("⏱️ Tempo esgotado! Você criou um laço infinito? Revise seu for/while.");
+    finish();
+  }, 3000);
+  worker.onmessage = e => {
+    const d = e.data;
+    if(d.t==="log") onLog(d.m);
+    if(d.t==="test") onTest(d.name, d.pass);
+    if(d.t==="error") onError(d.m);
+    if(d.t==="done") finish();
+  };
+  worker.onerror = e => { onError(e.message || "Erro ao executar."); finish(); };
+}
+
+/* ==================== RENDERIZAR EXERCÍCIOS ==================== */
+const temas = ["Todos", ...new Set(exercicios.map(e=>e.tema))];
+let temaAtual = "Todos";
+
+function renderChips(){
+  const box=document.getElementById("chips"); box.innerHTML="";
+  temas.forEach(t=>{
+    const b=document.createElement("button");
+    b.textContent=t; if(t===temaAtual)b.classList.add("active");
+    b.onclick=()=>{temaAtual=t;renderChips();renderExercicios();};
+    box.appendChild(b);
+  });
+}
+
+function criarCardEx(ex, container){
+  const card=document.createElement("div");
+  card.className="card";
+  const done=estado.solved.includes(ex.id);
+  card.innerHTML=`
+    <span class="resolvido">${done?"✅ Concluído":""}</span>
+    <span class="badge ${ex.nivel==="Fácil"?"facil":ex.nivel==="Médio"?"medio":"dificil"}">${ex.nivel}</span>
+    <span class="badge" style="background:rgba(72,219,251,.15);color:var(--blue)">+${ex.xp} XP</span>
+    <h3 style="margin-top:12px">${ex.titulo}</h3>
+    <p>${ex.desc}</p>
+    <div class="req"><ul>${ex.req.map(r=>"<li>"+r+"</li>").join("")}</ul></div>
+    <textarea spellcheck="false" aria-label="Código JavaScript"></textarea>
+    <div class="actions">
+      <button class="btn btn-run">▶️ Executar</button>
+      <button class="btn btn-ghost">💡 Dica</button>
+      <button class="btn btn-solve">👁️ Solução</button>
+      <button class="btn btn-ghost">↺</button>
+    </div>
+    <div class="output"></div>
+    <div class="hint"><p>💡 ${ex.hint}</p></div>
+    <div class="solution"><p>✅ Uma possível solução:</p><pre></pre></div>
+  `;
+  const ta=card.querySelector("textarea"); ta.value=ex.starter;
+  const out=card.querySelector(".output");
+  const hint=card.querySelector(".hint");
+  const sol=card.querySelector(".solution");
+  sol.querySelector("pre").textContent=ex.solution;
+  const [run,hintBtn,solBtn,resetBtn]=card.querySelectorAll(".actions button");
+
+  hintBtn.onclick=()=>hint.style.display=hint.style.display==="block"?"none":"block";
+  solBtn.onclick=()=>sol.style.display=sol.style.display==="block"?"none":"block";
+  resetBtn.onclick=()=>{ta.value=ex.starter;out.classList.remove("show");};
+
+  run.onclick=()=>{
+    out.classList.add("show"); out.innerHTML="";
+    run.disabled=true; run.textContent="⏳ Rodando...";
+    let tests=[], hasError=false;
+    const addLine=(txt,cls)=>{const d=document.createElement("div");d.className=cls;d.textContent=txt;out.appendChild(d);};
+    executarJS(
+      ta.value, ex.checks,
+      m=>addLine("› "+m,"log-line"),
+      (name,pass)=>{
+        tests.push(pass);
+        const d=document.createElement("div");
+        d.className="test "+(pass?"ok":"no");
+        d.textContent=(pass?"✅ ":"❌ ")+name;
+        out.appendChild(d);
+      },
+      m=>{hasError=true;addLine(m,"err-line");},
+      ()=>{
+        run.disabled=false; run.textContent="▶️ Executar";
+        if(!hasError && tests.length && tests.every(Boolean)){
+          const d=document.createElement("div");
+          d.className="test ok"; d.textContent="🎉 Todos os testes passaram! +"+ex.xp+" XP";
+          out.appendChild(d);
+          concluir(ex.id,ex.xp);
+          const badge=card.querySelector(".resolvido"); if(badge)badge.textContent="✅ Concluído";
+        } else if(!hasError && !tests.length){
+          addLine("Código executado. Complete os requisitos para passar nos testes.","log-line");
+        }
+      }
+    );
+  };
+  container.appendChild(card);
+}
+
+function renderExercicios(){
+  const box=document.getElementById("lista-exercicios"); box.innerHTML="";
+  exercicios.filter(e=>temaAtual==="Todos"||e.tema===temaAtual)
+    .forEach(ex=>criarCardEx(ex,box));
+}
+
+/* ==================== QUIZ ==================== */
+const perguntas=[
+  {q:"Qual palavra-chave cria uma variável que NÃO pode ser reatribuída?",o:["var","let","const","function"],a:2,e:"const cria uma constante. Ela não pode ser reatribuída depois."},
+  {q:"Como se escreve um template literal corretamente?",o:["'Olá ${nome}'","`Olá ${nome}`","\"Olá {nome}\"","(Olá nome)"],a:1,e:"Template literals usam crases (`) e interpolam com ${}."},
+  {q:"O que [1,2,3].map(n => n * 2) retorna?",o:["[1,2,3]","6","[2,4,6]","[1,4,9]"],a:2,e:"map transforma cada item e cria um novo array: [2,4,6]."},
+  {q:"Qual método filtra itens de um array?",o:["map","reduce","push","filter"],a:3,e:"filter mantém apenas os itens que passam na condição."},
+  {q:"Para que serve reduce?",o:["Remover itens","Reduzir o array a um único valor","Ordenar itens","Adicionar no final"],a:1,e:"reduce acumula os itens em um valor: soma, média, total..." },
+  {q:"Como acessar o nome dentro de const p = {nome:'Ana'}?",o:["p->nome","p.nome","p[nome] sem aspas na chave","nome.p"],a:1,e:"Notação de ponto: p.nome. Também funciona p[\"nome\"]."},
+  {q:"O que document.querySelector('.btn') seleciona?",o:["O primeiro elemento com classe btn","Todas as tags btn","O elemento com id btn","Uma variável chamada btn"],a:0,e:"querySelector retorna o PRIMEIRO elemento que bate com o seletor. O ponto indica classe."},
+  {q:"Qual evento dispara ao clicar num botão?",o:["load","hover","click","submit"],a:2,e:"addEventListener('click', fn) escuta cliques."},
+  {q:"Como salvar 'Ana' com a chave 'nome' no localStorage?",o:["localStorage.save('Ana','nome')","localStorage.setItem('nome','Ana')","save.local('nome','Ana')","localStorage.push('Ana')"],a:1,e:"localStorage.setItem(chave, valor). Para ler: getItem(chave)."},
+  {q:"Qual é o resultado de 10 % 3?",o:["3","0","1","3.33"],a:2,e:"% é o resto da divisão. 10 dividido por 3 dá 3 e sobra 1."}
+];
+let qi=0, qScore=0, qAnswered=false;
+
+function renderQuiz(){
+  qi=0;qScore=0;renderPergunta();
+}
+function renderPergunta(){
+  qAnswered=false;
+  const box=document.getElementById("quiz-box");
+  if(qi>=perguntas.length){
+    if(qScore>estado.best){estado.best=qScore;salvar();}
+    box.innerHTML=`<h3>🏁 Resultado: ${qScore}/10</h3>
+      <p>${qScore>=8?"Incrível! Você manda em JS. 🚀":qScore>=5?"Bom caminho! Revise os exercícios e tente de novo. 💪":"Sem压力! Estude os exercícios e volte aqui. 📚"}</p>
+      <button class="btn btn-run" style="margin-top:15px" onclick="renderQuiz()">🔄 Tentar novamente</button>`;
+    return;
+  }
+  const p=perguntas[qi];
+  box.innerHTML=`<p style="opacity:.6;font-size:.85rem">Pergunta ${qi+1} de ${perguntas.length} · Acertos: ${qScore}</p>
+    <h3 style="margin:12px 0">${p.q}</h3>
+    <div>${p.o.map((o,i)=>`<button class="quiz-option" data-i="${i}">${String.fromCharCode(65+i)}) ${o}</button>`).join("")}</div>
+    <div id="quiz-feedback"></div>
+    <button class="btn btn-run" id="quiz-next" style="display:none" onclick="proximaPergunta()">Próxima →</button>`;
+  box.querySelectorAll(".quiz-option").forEach(b=>{
+    b.onclick=()=>{
+      if(qAnswered)return; qAnswered=true;
+      const i=+b.dataset.i, ok=i===p.a;
+      box.querySelectorAll(".quiz-option").forEach((btn,j)=>{
+        btn.disabled=true;
+        if(j===p.a)btn.classList.add("right");
+        if(j===i&&!ok)btn.classList.add("wrong");
+      });
+      const fb=document.getElementById("quiz-feedback");
+      fb.style.display="block";
+      fb.style.background=ok?"rgba(29,209,161,.15)":"rgba(255,107,157,.15)";
+      fb.innerHTML=(ok?"✅ Correto! +5 XP<br>":"❌ Quase! A resposta é "+String.fromCharCode(65+p.a)+".<br>")+p.e;
+      if(ok){estado.xp+=5;salvar();}
+      document.getElementById("quiz-next").style.display="inline-block";
+    };
+  });
+}
+function proximaPergunta(){
+  if(perguntas[qi].a===+document.querySelector(".quiz-option.right")?.dataset.i)qScore++;
+  qi++;renderPergunta();
+}
+
+/* ==================== DOM LAB ==================== */
+let count=0, added=0, removed=0, cardsCount=0;
+let labDone={counter:false,task:false,theme:false,cards:false};
+let temaEscuro=false;
+
+function markLab(key, part, elId){
+  document.getElementById(elId).classList.add("done");
+  document.getElementById(elId).textContent="✔ "+document.getElementById(elId).textContent.slice(2);
+  if(key==="counter"&&document.getElementById("mc1").classList.contains("done")&&document.getElementById("mc2").classList.contains("done"))labDone.counter=true;
+  if(key==="task"&&document.getElementById("mt1").classList.contains("done")&&document.getElementById("mt2").classList.contains("done"))labDone.task=true;
+  if(key==="theme"&&document.getElementById("mm1").classList.contains("done")&&document.getElementById("mm2").classList.contains("done"))labDone.theme=true;
+  if(key==="cards")labDone.cards=true;
+  if(labDone[key]&&!estado.labs.includes(key)){
+    estado.labs.push(key);estado.xp+=15;salvar();confetti();
+  }
+}
+function mudarContador(n){
+  count+=n;document.getElementById("counter-num").textContent=count;
+  if(count===5)markLab("counter",1,"mc1");
+  if(count===0&&document.getElementById("mc1").classList.contains("done"))markLab("counter",2,"mc2");
+}
+function resetContador(){count=0;document.getElementById("counter-num").textContent=0;if(document.getElementById("mc1").classList.contains("done"))markLab("counter",2,"mc2");}
+function addTask(){
+  const input=document.getElementById("task-input");
+  if(!input.value.trim())return;
+  const li=document.createElement("li");
+  li.textContent=input.value.trim();
+  li.onclick=()=>{li.remove();removed++;if(removed>=1)markLab("task",2,"mt2");};
+  document.getElementById("task-list").appendChild(li);
+  input.value="";added++;
+  if(added>=2)markLab("task",1,"mt1");
+}
+function toggleTema(){
+  temaEscuro=!temaEscuro;
+  document.getElementById("tema-preview").classList.toggle("dark-lab",temaEscuro);
+  if(temaEscuro)markLab("theme",1,"mm1");
+  else if(document.getElementById("mm1").classList.contains("done"))markLab("theme",2,"mm2");
+}
+function gerarCard(){
+  const colors=["#ff6b9d","#feca57","#48dbfb","#1dd1a1","#a29bfe"];
+  const d=document.createElement("div");
+  d.className="mini-card";
+  d.style.background=colors[cardsCount%colors.length];
+  d.textContent="Card "+(cardsCount+1)+" ✨";
+  document.getElementById("cards-target").appendChild(d);
+  cardsCount++;
+  if(cardsCount>=3)markLab("cards",1,"md1");
+}
+
+/* ==================== INICIALIZAÇÃO ==================== */
+renderChips();
+renderExercicios();
+renderQuiz();
+criarCardEx(exercicios.find(e=>e.id==="final"), document.getElementById("final-container"));
+atualizarStatus();
+</script>
+</body>
+</html>
